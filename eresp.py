@@ -79,4 +79,5 @@ def process():
     return f'File processed and saved as <strong>{new_file_name}</strong>. {download_link}'
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    #app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="127.0.0.2", port=int(os.environ.get("PORT", 5000)))
