@@ -36,6 +36,7 @@ def index():
         # Get the column headers from the uploaded file
         columns = df.columns.tolist()
 
+        # Pass the columns to the match_columns template for initial selection
         return render_template('match_columns.html', columns=columns,
                                required_columns=REQUIRED_COLUMNS,
                                optional_columns=OPTIONAL_COLUMNS, file_name=file_name)
@@ -50,19 +51,24 @@ def process():
     # Create a new DataFrame with the matched columns
     new_df = pd.DataFrame()
 
+    # Track columns that have already been matched to prevent duplicates
+    used_columns = set()
+
     # Match required columns
     for req_col in REQUIRED_COLUMNS:
         matched_col = request.form.get(f'req_{req_col}')
-        if matched_col and matched_col in df.columns:
+        if matched_col and matched_col in df.columns and matched_col not in used_columns:
             new_df[req_col] = df[matched_col]
+            used_columns.add(matched_col)  # Add to used columns set
         else:
-            return f'Missing required column mapping: {req_col}', 400
+            return f'Missing or duplicate required column mapping: {req_col}', 400
 
     # Match optional columns if they exist in the uploaded file
     for opt_col in OPTIONAL_COLUMNS:
         matched_col = request.form.get(f'opt_{opt_col}')
-        if matched_col and matched_col in df.columns:
+        if matched_col and matched_col in df.columns and matched_col not in used_columns:
             new_df[opt_col] = df[matched_col]
+            used_columns.add(matched_col)  # Add to used columns set
 
     # Save to new Excel file in the static folder
     new_file_name = os.path.join(OUTPUT_FOLDER, 'output_fun_data.xlsx')
