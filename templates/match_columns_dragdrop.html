@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Columns - Drag and Drop</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .list {
+            border: 1px solid #ddd;
+            padding: 20px;
+            width: 30%;
+            min-height: 300px;
+            background: #f9f9f9;
+        }
+        .list h3 {
+            margin-top: 0;
+        }
+        .item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #d9edf7;
+            cursor: move;
+        }
+        .drop-zone {
+            padding: 10px;
+            background: #f7f7f7;
+            border: 2px dashed #ccc;
+            min-height: 50px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Match Columns - One-to-One Drag and Drop</h1>
+    <form action="/process" method="post">
+        <input type="hidden" name="file_name" value="{{ file_name }}">
+
+        <div class="container">
+            <div class="list" id="uploaded-columns">
+                <h3>Uploaded File Columns</h3>
+                {% for col in columns %}
+                    <div class="item" data-column="{{ col }}">{{ col }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="list">
+                <h3>Match to Required Variables</h3>
+                {% for req_col in required_columns %}
+                    <div class="drop-zone" id="drop-zone-{{ req_col }}" data-required="{{ req_col }}">
+                        <strong>{{ req_col }}</strong>
+                    </div>
+                {% endfor %}
+                
+                <h3>Match to Optional Variables</h3>
+                {% for opt_col in optional_columns %}
+                    <div class="drop-zone" id="drop-zone-{{ opt_col }}" data-optional="{{ opt_col }}">
+                        <strong>{{ opt_col }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" onclick="submitMapping()">Submit Mapping</button>
+    </form>
+
+    <script>
+        // Enable drag-and-drop for uploaded columns
+        new Sortable(document.getElementById('uploaded-columns'), {
+            group: {
+                name: 'shared',
+                pull: 'clone',
+                put: false // Prevent columns from being removed from the uploaded list
+            },
+            sort: false // Disable sorting within the original list
+        });
+
+        // Enable drag-and-drop for required and optional variables
+        document.querySelectorAll('.drop-zone').forEach(function (zone) {
+            new Sortable(zone, {
+                group: 'shared',
+                ghostClass: 'ghost',
+                animation: 150,
+                onAdd: function (evt) {
+                    // Ensure only one item is in each drop-zone
+                    if (evt.to.children.length > 1) {
+                        evt.from.appendChild(evt.item); // Return item to its original list
+                        alert('Each variable can only be matched once.');
+                    }
+                }
+            });
+        });
+
+        function submitMapping() {
+            const requiredMappings = {};
+            const optionalMappings = {};
+
+            // Get mappings for required variables
+            document.querySelectorAll('[data-required]').forEach(zone => {
+                if (zone.children.length > 0) {
+                    requiredMappings[zone.dataset.required] = zone.children[0].textContent.trim();
+                }
+            });
+
+            // Get mappings for optional variables
+            document.querySelectorAll('[data-optional]').forEach(zone => {
+                if (zone.children.length > 0) {
+                    optionalMappings[zone.dataset.optional] = zone.children[0].textContent.trim();
+                }
+            });
+
+            // Create a hidden form field to pass the mappings as JSON
+            const form = document.forms[0];
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'mappings';
+            hiddenField.value = JSON.stringify({ required: requiredMappings, optional: optionalMappings });
+            form.appendChild(hiddenField);
+
+            // Submit the form
+            form.submit();
+        }
+    </script>
+</body>
+</html>

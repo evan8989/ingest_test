@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Columns - Dropdown Mapping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .mapping-container {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            padding: 20px;
+            width: 50%;
+            background: #f9f9f9;
+        }
+        select {
+            width: 200px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Match Columns - Dropdown Mapping</h1>
+    <form action="/process" method="post">
+        <input type="hidden" name="file_name" value="{{ file_name }}">
+        <h3>Uploaded File Columns</h3>
+        <div class="mapping-container">
+            <h3>Required Variables</h3>
+            {% for req_col in required_columns %}
+                <label for="req_{{ req_col }}">{{ req_col }}:</label>
+                <select name="req_{{ req_col }}" id="req_{{ req_col }}">
+                    <option value="">Select a column</option>
+                    {% for col in columns %}
+                        <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+            {% endfor %}
+
+            <h3>Optional Variables</h3>
+            {% for opt_col in optional_columns %}
+                <label for="opt_{{ opt_col }}">{{ opt_col }}:</label>
+                <select name="opt_{{ opt_col }}" id="opt_{{ opt_col }}">
+                    <option value="">Select a column</option>
+                    {% for col in columns %}
+                        <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+            {% endfor %}
+        </div>
+        <button type="submit">Submit Mapping</button>
+    </form>
+</body>
+</html>
