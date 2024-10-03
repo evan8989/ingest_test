@@ -8,6 +8,13 @@ app = Flask(__name__)
 REQUIRED_COLUMNS = ['First Name', 'Last Name', 'Date of Birth']
 OPTIONAL_COLUMNS = ['Sex', 'Age', 'Race']
 
+# Define the output folder
+OUTPUT_FOLDER = os.path.join(os.getcwd(), "static")
+
+# Create the static folder if it does not exist
+if not os.path.exists(OUTPUT_FOLDER):
+    os.makedirs(OUTPUT_FOLDER)
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -57,11 +64,13 @@ def process():
         if matched_col and matched_col in df.columns:
             new_df[opt_col] = df[matched_col]
 
-    # Save to new Excel file
-    new_file = 'output_fun_data.xlsx'
-    new_df.to_excel(new_file, index=False)
+    # Save to new Excel file in the static folder
+    new_file_name = os.path.join(OUTPUT_FOLDER, 'output_fun_data.xlsx')
+    new_df.to_excel(new_file_name, index=False)
 
-    return f'File processed and saved as {new_file}'
+    # Provide a download link to the processed file
+    download_link = f'<a href="/static/output_fun_data.xlsx">Download processed file</a>'
+    return f'File processed and saved as <strong>{new_file_name}</strong>. {download_link}'
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
